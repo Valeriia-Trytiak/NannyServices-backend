@@ -11,6 +11,7 @@ import {
 import { ConfigService } from '@nestjs/config'
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger'
 
+import { Cookie } from '@utils/decorators'
 import { Response } from 'express'
 
 import { AuthService } from './auth.service'
@@ -42,16 +43,25 @@ export class AuthController {
     if (!tokens) {
       throw new BadRequestException()
     }
-    this.getRefreshTokenToCookies(tokens, res)
+    this.setRefreshTokenToCookies(tokens, res)
     // return { accessToken: tokens.accessToken }
     // return tokens
   }
 
-  @Get('refresh')
+  @Get('refresh-tokens')
   @ApiOkResponse()
-  refreshTokens() {}
+  async refreshTokens(@Cookie(REFRESH_TOKEN) refreshToken: string, @Res() res: Response) {
+    if (!refreshToken) {
+      throw new UnauthorizedException()
+    }
+    const tokens = await this.authService.refreshTokens(refreshToken)
+    if (!tokens) {
+      throw new UnauthorizedException()
+    }
+    this.setRefreshTokenToCookies(tokens, res)
+  }
 
-  private getRefreshTokenToCookies(tokens: Tokens, res: Response) {
+  private setRefreshTokenToCookies(tokens: Tokens, res: Response) {
     if (!tokens) {
       throw new UnauthorizedException()
     }
@@ -62,6 +72,6 @@ export class AuthController {
       secure: this.configService.get('NODE_ENV', 'development') === 'production',
       path: '/'
     })
-    res.status(HttpStatus.CREATED).json(tokens)
+    res.status(HttpStatus.CREATED).json({ accessToken: tokens.accessToken })
   }
 }
