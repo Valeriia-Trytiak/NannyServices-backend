@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, UnauthorizedException } from '@nestjs/common'
 
 import { User } from '@prisma/client'
 import { PrismaService } from '@prisma/prisma.service'
@@ -19,8 +19,12 @@ export class UserService {
     })
   }
 
-  findOne(idOrEmail: string) {
-    return this.prismaService.user.findFirst({ where: { OR: [{ id: idOrEmail }, { email: idOrEmail }] } })
+  async findOne(idOrEmail: string): Promise<User> {
+    const user = await this.prismaService.user.findFirst({ where: { OR: [{ id: idOrEmail }, { email: idOrEmail }] } })
+    if (!user) {
+      throw new UnauthorizedException('User not found')
+    }
+    return user
   }
 
   remove(id: string) {
