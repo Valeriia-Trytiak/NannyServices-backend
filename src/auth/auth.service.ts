@@ -20,7 +20,7 @@ export class AuthService {
     private readonly prismaService: PrismaService
   ) {}
 
-  async refreshTokens(refreshToken: string): Promise<Tokens> {
+  async refreshTokens(refreshToken: string, agent: string): Promise<Tokens> {
     const token = await this.prismaService.token.findUnique({ where: { token: refreshToken } })
     if (!token) {
       throw new UnauthorizedException()
@@ -30,7 +30,7 @@ export class AuthService {
       throw new UnauthorizedException()
     }
     const user = await this.userService.findOne(token.userId)
-    return this.generateTokens(user)
+    return this.generateTokens(user, agent)
   }
 
   async signup(dto: SignUpDto) {
@@ -43,15 +43,15 @@ export class AuthService {
     return user
   }
 
-  async singin(dto: SingInDto): Promise<Tokens> {
+  async singin(dto: SingInDto, agent: string): Promise<Tokens> {
     const user: User = await this.userService.findOne(dto.email)
     if (!user || !compareSync(dto.password, user.password)) {
       throw new UnauthorizedException('Login or password is incorrect')
     }
-    return this.generateTokens(user)
+    return this.generateTokens(user, agent)
   }
 
-  private async generateTokens(user: User): Promise<Tokens> {
+  private async generateTokens(user: User, agent: string): Promise<Tokens> {
     const accessToken =
       'Bearer ' +
       this.jwtService.sign({
@@ -59,16 +59,23 @@ export class AuthService {
         email: user.email,
         roles: user.roles
       })
-    const refreshToken = await this.getRefreshToken(user.id)
+    const refreshToken = await this.getRefreshToken(user.id, agent)
     return { accessToken, refreshToken }
   }
 
-  private async getRefreshToken(userId: string): Promise<Token> {
-    return this.prismaService.token.create({
-      data: {
+  private async getRefreshToken(userId: string, agent: string): Promise<Token> {
+    const token = await this.prismaService.token.findFirst({ where: { userId, userAgent: agent } })
+    return this.prismaService.token.upsert({
+      where: { token: token?.token ?? ' ' },
+      update: {
+        token: v4(),
+        exp: add(new Date(), { months: 1 })
+      },
+      create: {
         token: v4(),
         exp: add(new Date(), { months: 1 }), //налаштувати через дані оточення
-        userId
+        userId,
+        userAgent: agent
       }
     })
   }

@@ -39,8 +39,7 @@ export class AuthController {
   @Post('singin')
   @ApiOkResponse({ description: 'User login successful' })
   async singin(@Body() dto: SingInDto, @Res() res: Response, @UserAgent() agent: string) {
-    console.log(agent)
-    const tokens = await this.authService.singin(dto)
+    const tokens = await this.authService.singin(dto, agent)
     if (!tokens) {
       throw new BadRequestException()
     }
@@ -51,11 +50,11 @@ export class AuthController {
 
   @Get('refresh-tokens')
   @ApiOkResponse()
-  async refreshTokens(@Cookie(REFRESH_TOKEN) refreshToken: string, @Res() res: Response) {
+  async refreshTokens(@Cookie(REFRESH_TOKEN) refreshToken: string, @Res() res: Response, @UserAgent() agent: string) {
     if (!refreshToken) {
       throw new UnauthorizedException()
     }
-    const tokens = await this.authService.refreshTokens(refreshToken)
+    const tokens = await this.authService.refreshTokens(refreshToken, agent)
     if (!tokens) {
       throw new UnauthorizedException()
     }
