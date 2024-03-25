@@ -11,7 +11,7 @@ import {
 import { ConfigService } from '@nestjs/config'
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger'
 
-import { Cookie } from '@utils/decorators'
+import { Cookie, UserAgent } from '@utils/decorators'
 import { Response } from 'express'
 
 import { AuthService } from './auth.service'
@@ -38,7 +38,8 @@ export class AuthController {
 
   @Post('singin')
   @ApiOkResponse({ description: 'User login successful' })
-  async singin(@Body() dto: SingInDto, @Res() res: Response) {
+  async singin(@Body() dto: SingInDto, @Res() res: Response, @UserAgent() agent: string) {
+    console.log(agent)
     const tokens = await this.authService.singin(dto)
     if (!tokens) {
       throw new BadRequestException()
