@@ -11,7 +11,7 @@ import {
 import { ConfigService } from '@nestjs/config'
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger'
 
-import { Cookie, UserAgent } from '@utils/decorators'
+import { Cookie, Public, UserAgent } from '@utils/decorators'
 import { Response } from 'express'
 
 import { AuthService } from './auth.service'
@@ -19,7 +19,7 @@ import { SignUpDto, SingInDto } from './dto'
 import { Tokens } from './interfaces'
 
 const REFRESH_TOKEN = 'refreshtoken'
-
+@Public()
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
