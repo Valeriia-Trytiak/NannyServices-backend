@@ -19,7 +19,7 @@ jobs:
           node-version: 18
 
       - name: Install dependencies
-        run: npm install
+        run: yarn install
 
       - name: Lint commits
         run: npx --no-install commitlint --from=$GITHUB_SHA^ --to=$GITHUB_SHA
