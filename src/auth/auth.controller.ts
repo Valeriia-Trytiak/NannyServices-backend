@@ -1,16 +1,19 @@
 import {
   BadRequestException,
   Body,
+  ClassSerializerInterceptor,
   Controller,
   Get,
   HttpStatus,
   Post,
   Res,
-  UnauthorizedException
+  UnauthorizedException,
+  UseInterceptors
 } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger'
 
+import { UserResponse } from '@user/responses'
 import { Cookie, Public, UserAgent } from '@utils/decorators'
 import { Response } from 'express'
 
@@ -27,13 +30,12 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly configService: ConfigService
   ) {}
+  @UseInterceptors(ClassSerializerInterceptor)
   @Post('signup')
   @ApiOkResponse({ description: 'User registration successfully' })
   async signup(@Body() dto: SignUpDto) {
-    await this.authService.signup(dto)
-    // if (!user) {
-    //   throw new BadRequestException(`It is not possible to create a user with this data ${JSON.stringify(dto)}`)
-    // }
+    const user = await this.authService.signup(dto)
+    return new UserResponse(user)
   }
 
   @Post('singin')
@@ -44,8 +46,6 @@ export class AuthController {
       throw new BadRequestException()
     }
     this.setRefreshTokenToCookies(tokens, res)
-    // return { accessToken: tokens.accessToken }
-    // return tokens
   }
 
   @Get('refresh-tokens')

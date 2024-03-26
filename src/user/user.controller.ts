@@ -1,7 +1,18 @@
-import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post } from '@nestjs/common'
+import {
+  Body,
+  ClassSerializerInterceptor,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  UseInterceptors
+} from '@nestjs/common'
 import { ApiOkResponse, ApiResponse, ApiTags } from '@nestjs/swagger'
 
 import { CreateUserDto } from './dto'
+import { UserResponse } from './responses'
 import { UserService } from './user.service'
 
 @ApiTags('user')
@@ -9,23 +20,27 @@ import { UserService } from './user.service'
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @UseInterceptors(ClassSerializerInterceptor)
   @Post()
   @ApiOkResponse({ description: 'User created successfully' })
-  createUser(@Body() dto: CreateUserDto) {
-    return this.userService.save(dto)
+  async createUser(@Body() dto: CreateUserDto) {
+    const user = await this.userService.save(dto)
+    return new UserResponse(user)
   }
 
+  @UseInterceptors(ClassSerializerInterceptor)
   @Get(':idOrEmail')
   @ApiOkResponse({ status: 200, description: '' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  findOneUser(@Param('idOrEmail') idOrEmail: string) {
-    return this.userService.findOne(idOrEmail)
+  async findOneUser(@Param('idOrEmail') idOrEmail: string) {
+    const user = await this.userService.findOne(idOrEmail)
+    return new UserResponse(user)
   }
 
   @Delete(':id')
   @ApiResponse({ status: 200, description: 'User successfully deleted' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  deleteUser(@Param('id', ParseUUIDPipe) id: string) {
+  async deleteUser(@Param('id', ParseUUIDPipe) id: string) {
     return this.userService.remove(id)
   }
 }

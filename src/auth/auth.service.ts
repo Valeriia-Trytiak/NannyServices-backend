@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, Logger, UnauthorizedException } from '@nestjs/common'
+import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 
 import { Token, User } from '@prisma/client'
@@ -13,7 +13,6 @@ import { Tokens } from './interfaces'
 
 @Injectable()
 export class AuthService {
-  private readonly logger = new Logger(AuthService.name)
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
@@ -39,8 +38,7 @@ export class AuthService {
       throw new ConflictException('User already exists')
     }
 
-    const user = await this.userService.save(dto)
-    return user
+    return this.userService.save(dto)
   }
 
   async singin(dto: SingInDto, agent: string): Promise<Tokens> {
