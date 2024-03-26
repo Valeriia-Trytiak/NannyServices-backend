@@ -31,7 +31,7 @@ export class AuthController {
     private readonly configService: ConfigService
   ) {}
   @UseInterceptors(ClassSerializerInterceptor)
-  @Post('signup')
+  @Post('signup') //не работает публичный роутер
   @ApiOkResponse({ description: 'User registration successfully' })
   async signup(@Body() dto: SignUpDto) {
     const user = await this.authService.signup(dto)
