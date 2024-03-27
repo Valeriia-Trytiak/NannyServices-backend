@@ -1,17 +1,17 @@
 import {
-  Body,
   ClassSerializerInterceptor,
   Controller,
   Delete,
   Get,
   Param,
   ParseUUIDPipe,
-  Post,
   UseInterceptors
 } from '@nestjs/common'
 import { ApiOkResponse, ApiResponse, ApiTags } from '@nestjs/swagger'
 
-import { CreateUserDto } from './dto'
+import { JwtPayload } from '@auth/interfaces'
+import { CurrentUser } from '@utils/decorators'
+
 import { UserResponse } from './responses'
 import { UserService } from './user.service'
 
@@ -19,14 +19,6 @@ import { UserService } from './user.service'
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
-
-  @UseInterceptors(ClassSerializerInterceptor)
-  @Post()
-  @ApiOkResponse({ description: 'User created successfully' })
-  async createUser(@Body() dto: CreateUserDto) {
-    const user = await this.userService.save(dto)
-    return new UserResponse(user)
-  }
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Get(':idOrEmail')
@@ -40,7 +32,7 @@ export class UserController {
   @Delete(':id')
   @ApiResponse({ status: 200, description: 'User successfully deleted' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  async deleteUser(@Param('id', ParseUUIDPipe) id: string) {
-    return this.userService.remove(id)
+  async deleteUser(@Param('id', ParseUUIDPipe) id: string, @CurrentUser('id') user: JwtPayload) {
+    return this.userService.remove(id, user)
   }
 }

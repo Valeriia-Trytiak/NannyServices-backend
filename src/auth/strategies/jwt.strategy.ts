@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config'
 import { PassportStrategy } from '@nestjs/passport'
 
 import { JwtPayload } from '@auth/interfaces'
+import { User } from '@prisma/client'
 import { UserService } from '@user/user.service'
 import { ExtractJwt, Strategy } from 'passport-jwt'
 
@@ -19,8 +20,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     })
   }
 
-  async validate(payload: JwtPayload): Promise<JwtPayload> {
-    const user = await this.userService.findOne(payload.id)
+  async validate(payload: JwtPayload) {
+    const user: User = await this.userService.findOne(payload.id)
     if (!user) {
       throw new UnauthorizedException()
     }
