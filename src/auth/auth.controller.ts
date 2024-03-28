@@ -31,7 +31,7 @@ export class AuthController {
     private readonly configService: ConfigService
   ) {}
   @UseInterceptors(ClassSerializerInterceptor)
-  @Post('signup') //не работает публичный роутер
+  @Post('signup')
   @ApiOkResponse({ description: 'User registration successfully' })
   async signup(@Body() dto: SignUpDto) {
     const user = await this.authService.signup(dto)
@@ -46,6 +46,18 @@ export class AuthController {
       throw new BadRequestException()
     }
     this.setRefreshTokenToCookies(tokens, res)
+  }
+
+  @Get('signout')
+  @ApiOkResponse({ description: 'Logout successful' })
+  async signout(@Cookie(REFRESH_TOKEN) refreshTokens: string, @Res() res: Response) {
+    if (!refreshTokens) {
+      res.sendStatus(HttpStatus.OK)
+      return
+    }
+    await this.authService.deleteRefreshToken(refreshTokens)
+    res.cookie(REFRESH_TOKEN, '', { httpOnly: true, secure: true, expires: new Date() })
+    res.sendStatus(HttpStatus.OK)
   }
 
   @Get('refresh-tokens')
