@@ -1,4 +1,6 @@
-import { ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
+import { ForbiddenException, Inject, Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 
 import { JwtPayload } from '@auth/interfaces'
 import { Role, User } from '@prisma/client'
@@ -7,7 +9,11 @@ import { genSaltSync, hashSync } from 'bcrypt'
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly configService: ConfigService
+  ) {}
 
   save(user: Partial<User>) {
     // const hashedPassword = this.hashPassword(user.password)
@@ -21,9 +27,18 @@ export class UserService {
   }
 
   async findOne(idOrEmail: string): Promise<User> {
-    const user = await this.prismaService.user.findFirst({ where: { OR: [{ id: idOrEmail }, { email: idOrEmail }] } })
+    const user = await this.cacheManager.get<User>(idOrEmail)
     if (!user) {
-      throw new UnauthorizedException('User not found')
+      const user = await this.prismaService.user.findFirst({
+        where: {
+          OR: [{ id: idOrEmail }, { email: idOrEmail }]
+        }
+      })
+      if (!user) {
+        return null
+      }
+      await this.cacheManager.set(idOrEmail, user)
+      return user
     }
     return user
   }
