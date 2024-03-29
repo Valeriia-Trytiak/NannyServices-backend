@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 
 import { Token, User } from '@prisma/client'
@@ -33,16 +33,16 @@ export class AuthService {
   }
 
   async signup(dto: SignUpDto) {
-    // const isUserExists = await this.userService.findOne(dto.email)
-    // if (isUserExists) {
-    //   throw new ConflictException('User already exists')
-    // }
+    const isUserExists: User = await this.userService.findOne(dto.email, true)
+    if (isUserExists) {
+      throw new ConflictException('User already exists')
+    }
 
     return this.userService.save(dto)
   }
 
   async singin(dto: SingInDto, agent: string): Promise<Tokens> {
-    const user: User = await this.userService.findOne(dto.email)
+    const user: User = await this.userService.findOne(dto.email, true)
     if (!user || !compareSync(dto.password, user.password)) {
       throw new UnauthorizedException('Login or password is incorrect')
     }

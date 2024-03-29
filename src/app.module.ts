@@ -1,3 +1,4 @@
+import { CacheModule } from '@nestjs/cache-manager'
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { APP_GUARD } from '@nestjs/core'
@@ -11,7 +12,14 @@ import { UserModule } from './user/user.module'
 import { UserService } from './user/user.service'
 
 @Module({
-  imports: [ConfigModule.forRoot(), UserModule, PrismaModule, AuthModule, ConfigModule.forRoot({ isGlobal: true })],
+  imports: [
+    ConfigModule.forRoot(),
+    UserModule,
+    PrismaModule,
+    AuthModule,
+    ConfigModule.forRoot({ isGlobal: true }),
+    CacheModule.register()
+  ],
   providers: [
     {
       provide: APP_GUARD,

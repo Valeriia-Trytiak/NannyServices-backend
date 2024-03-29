@@ -5,7 +5,9 @@ import { ConfigService } from '@nestjs/config'
 import { JwtPayload } from '@auth/interfaces'
 import { Role, User } from '@prisma/client'
 import { PrismaService } from '@prisma/prisma.service'
+import { convertToSeconds } from '@utils/utils'
 import { genSaltSync, hashSync } from 'bcrypt'
+import { Cache } from 'cache-manager'
 
 @Injectable()
 export class UserService {
@@ -26,7 +28,10 @@ export class UserService {
     })
   }
 
-  async findOne(idOrEmail: string): Promise<User> {
+  async findOne(idOrEmail: string, isReset = false): Promise<User> {
+    if (isReset) {
+      await this.cacheManager.del(idOrEmail)
+    }
     const user = await this.cacheManager.get<User>(idOrEmail)
     if (!user) {
       const user = await this.prismaService.user.findFirst({
@@ -35,9 +40,9 @@ export class UserService {
         }
       })
       if (!user) {
-        return null
+        return {} as User
       }
-      await this.cacheManager.set(idOrEmail, user)
+      await this.cacheManager.set(idOrEmail, user, convertToSeconds(this.configService.get('JWT_EXP', '1h')))
       return user
     }
     return user
@@ -47,6 +52,7 @@ export class UserService {
     if (user.id !== id && !user.roles.includes(Role.ADMIN)) {
       throw new ForbiddenException()
     }
+    await Promise.all([this.cacheManager.del(id), this.cacheManager.del(user.email)])
     return await this.prismaService.user.delete({ where: { id }, select: { id: true } })
   }
 
