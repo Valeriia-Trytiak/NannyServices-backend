@@ -14,6 +14,7 @@ model User {
   password String
   roles Role[]
   Token Token[]
+  rewiews Review[]
   createAt DateTime @default(now()) @map("created_at")
   updateAt DateTime @updatedAt @map("updated_at")
 @@map("users")
@@ -26,6 +27,37 @@ model Token {
   userId String
   userAgent String @map("user_agent")
   @@map("tokens")
+}
+
+model Nanny {
+  id              Int      @id @default(autoincrement())
+  name            String
+  avatarUrl       String
+  birthday        DateTime
+  experience      String
+  education       String
+  kidsAge         String
+  pricePerHour    Int
+  location        String
+  about           String
+  rating          Float
+  characters      String[]
+  
+  reviews         Review[]
+   @@map("nannys")
+}
+
+model Review {
+  id              Int      @id @default(autoincrement())
+  rating          Float
+  comment         String
+  
+  reviewer        User     @relation(fields: [reviewerId], references: [id])
+  reviewerId      String
+  
+  nanny           Nanny    @relation(fields: [nannyId], references: [id])
+  nannyId         Int
+   @@map("reviews")
 }
 
 enum Role {
