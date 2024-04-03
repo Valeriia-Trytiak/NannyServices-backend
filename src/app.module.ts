@@ -6,6 +6,7 @@ import { APP_GUARD } from '@nestjs/core'
 import { JwtAuthGuard } from '@auth/guards/jwt-auth.guard'
 
 import { AuthModule } from './auth/auth.module'
+import { FavoritesModule } from './favorites/favorites.module'
 import { NanniesModule } from './nannies/nannies.module'
 import { PrismaModule } from './prisma/prisma.module'
 import { UserController } from './user/user.controller'
@@ -20,7 +21,8 @@ import { UserService } from './user/user.service'
     AuthModule,
     ConfigModule.forRoot({ isGlobal: true }),
     CacheModule.register(),
-    NanniesModule
+    NanniesModule,
+    FavoritesModule
   ],
   providers: [
     {
