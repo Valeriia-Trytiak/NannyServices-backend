@@ -25,7 +25,9 @@
       "@utils": ["libs/utils/src"],
       "@utils/*": ["libs/utils/src/*"],
       "@auth": ["src/auth"],
-      "@auth/*": ["src/auth/*"]
+      "@auth/*": ["src/auth/*"],
+      "@nannies/": ["src/nannies"],
+      "@nannies/*": ["src/nannies/*"]
     }
   }
 }
