@@ -27,7 +27,9 @@
       "@auth": ["src/auth"],
       "@auth/*": ["src/auth/*"],
       "@nannies/": ["src/nannies"],
-      "@nannies/*": ["src/nannies/*"]
+      "@nannies/*": ["src/nannies/*"],
+      "@favorites/": ["src/favorites"],
+      "@favorites/*": ["src/favorites/*"]
     }
   }
 }

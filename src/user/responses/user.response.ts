@@ -1,4 +1,4 @@
-import { Role, User } from '@prisma/client'
+import { NannyUserFavorite, Review, Role, User } from '@prisma/client'
 import { Exclude } from 'class-transformer'
 
 export class UserResponse implements User {
@@ -16,6 +16,10 @@ export class UserResponse implements User {
   updateAt: Date
 
   roles: Role[]
+
+  rewiews: Review[]
+
+  favorites: NannyUserFavorite[]
 
   constructor(user: User) {
     Object.assign(this, user)
