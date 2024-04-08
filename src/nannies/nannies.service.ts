@@ -10,8 +10,9 @@ import { CreateNannyDto, UpdateNannyDto } from './dto'
 export class NanniesService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async findAll(): Promise<Nanny[]> {
-    return this.prismaService.nanny.findMany()
+  async findAll(page: number, pageSize: number): Promise<Nanny[]> {
+    const skip = (page - 1) * pageSize
+    return this.prismaService.nanny.findMany({ skip, take: pageSize })
   }
 
   async findById(id: number): Promise<Nanny | null> {
@@ -54,28 +55,46 @@ export class NanniesService {
   }
 
   //sort
-
-  async sortByAlphabetAsc(): Promise<Nanny[]> {
-    return this.prismaService.nanny.findMany({ orderBy: { name: 'asc' } })
-  }
-
-  async sortByAlphabetDesc(): Promise<Nanny[]> {
-    return this.prismaService.nanny.findMany({ orderBy: { name: 'desc' } })
-  }
-
-  async sortByPriceAsc(): Promise<Nanny[]> {
-    return this.prismaService.nanny.findMany({ orderBy: { pricePerHour: 'asc' } })
-  }
-
-  async sortByPriceDesc(): Promise<Nanny[]> {
-    return this.prismaService.nanny.findMany({ orderBy: { pricePerHour: 'desc' } })
-  }
-
-  async sortByRatingAsc(): Promise<Nanny[]> {
-    return this.prismaService.nanny.findMany({ orderBy: { rating: 'asc' } })
-  }
-
-  async sortByRatingDesc(): Promise<Nanny[]> {
-    return this.prismaService.nanny.findMany({ orderBy: { rating: 'desc' } })
+  async findAllWithSort(sort: string, page: number, pageSize: number): Promise<Nanny[]> {
+    switch (sort) {
+      case 'alphabetAsc':
+        return this.prismaService.nanny.findMany({
+          orderBy: { name: 'asc' },
+          skip: (page - 1) * pageSize,
+          take: pageSize
+        })
+      case 'alphabetDesc':
+        return this.prismaService.nanny.findMany({
+          orderBy: { name: 'desc' },
+          skip: (page - 1) * pageSize,
+          take: pageSize
+        })
+      case 'priceAsc':
+        return this.prismaService.nanny.findMany({
+          orderBy: { pricePerHour: 'asc' },
+          skip: (page - 1) * pageSize,
+          take: pageSize
+        })
+      case 'priceDesc':
+        return this.prismaService.nanny.findMany({
+          orderBy: { pricePerHour: 'desc' },
+          skip: (page - 1) * pageSize,
+          take: pageSize
+        })
+      case 'ratingAsc':
+        return this.prismaService.nanny.findMany({
+          orderBy: { rating: 'asc' },
+          skip: (page - 1) * pageSize,
+          take: pageSize
+        })
+      case 'ratingDesc':
+        return this.prismaService.nanny.findMany({
+          orderBy: { rating: 'desc' },
+          skip: (page - 1) * pageSize,
+          take: pageSize
+        })
+      default:
+        return this.findAll(page, pageSize)
+    }
   }
 }

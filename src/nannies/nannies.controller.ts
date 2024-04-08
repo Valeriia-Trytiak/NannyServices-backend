@@ -16,31 +16,19 @@ export class NanniesController {
   @Public()
   @Get()
   @ApiOkResponse()
-  async getAllNannies(@Query('sort') sort: string) {
-    let nannies: Nanny[]
-    switch (sort) {
-      case 'alphabetAsc':
-        nannies = await this.nanniesServise.sortByAlphabetAsc()
-        break
-      case 'alphabetDesc':
-        nannies = await this.nanniesServise.sortByAlphabetDesc()
-        break
-      case 'priceAsc':
-        nannies = await this.nanniesServise.sortByPriceAsc()
-        break
-      case 'priceDesc':
-        nannies = await this.nanniesServise.sortByPriceDesc()
-        break
-      case 'ratingAsc':
-        nannies = await this.nanniesServise.sortByRatingAsc()
-        break
-      case 'ratingDesc':
-        nannies = await this.nanniesServise.sortByRatingDesc()
-        break
-      default:
-        nannies = await this.nanniesServise.findAll()
+  async getAllNannies(
+    @Query('sort') sort: string,
+    @Query('page') page: string = '1',
+    @Query('pageSize') pageSize: string = '3'
+  ) {
+    const parsedPage = parseInt(page, 10)
+    const parsedPageSize = parseInt(pageSize, 10)
+
+    if (sort) {
+      return this.nanniesServise.findAllWithSort(sort, parsedPage, parsedPageSize)
+    } else {
+      return this.nanniesServise.findAll(parsedPage, parsedPageSize)
     }
-    return nannies
   }
 
   @Get(':id')
