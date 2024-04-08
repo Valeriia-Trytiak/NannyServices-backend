@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Post, Put } from '@nestjs/common'
+import { Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, Post, Put, Query } from '@nestjs/common'
 import { ApiBadRequestResponse, ApiNotFoundResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger'
 
 import { JwtPayload } from '@auth/interfaces'
@@ -16,8 +16,31 @@ export class NanniesController {
   @Public()
   @Get()
   @ApiOkResponse()
-  async getAllNannies() {
-    return this.nanniesServise.findAll()
+  async getAllNannies(@Query('sort') sort: string) {
+    let nannies: Nanny[]
+    switch (sort) {
+      case 'alphabetAsc':
+        nannies = await this.nanniesServise.sortByAlphabetAsc()
+        break
+      case 'alphabetDesc':
+        nannies = await this.nanniesServise.sortByAlphabetDesc()
+        break
+      case 'priceAsc':
+        nannies = await this.nanniesServise.sortByPriceAsc()
+        break
+      case 'priceDesc':
+        nannies = await this.nanniesServise.sortByPriceDesc()
+        break
+      case 'ratingAsc':
+        nannies = await this.nanniesServise.sortByRatingAsc()
+        break
+      case 'ratingDesc':
+        nannies = await this.nanniesServise.sortByRatingDesc()
+        break
+      default:
+        nannies = await this.nanniesServise.findAll()
+    }
+    return nannies
   }
 
   @Get(':id')

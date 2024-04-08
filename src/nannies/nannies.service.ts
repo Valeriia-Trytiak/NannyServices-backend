@@ -52,4 +52,30 @@ export class NanniesService {
     }
     return await this.prismaService.nanny.delete({ where: { id }, select: { id: true } })
   }
+
+  //sort
+
+  async sortByAlphabetAsc(): Promise<Nanny[]> {
+    return this.prismaService.nanny.findMany({ orderBy: { name: 'asc' } })
+  }
+
+  async sortByAlphabetDesc(): Promise<Nanny[]> {
+    return this.prismaService.nanny.findMany({ orderBy: { name: 'desc' } })
+  }
+
+  async sortByPriceAsc(): Promise<Nanny[]> {
+    return this.prismaService.nanny.findMany({ orderBy: { pricePerHour: 'asc' } })
+  }
+
+  async sortByPriceDesc(): Promise<Nanny[]> {
+    return this.prismaService.nanny.findMany({ orderBy: { pricePerHour: 'desc' } })
+  }
+
+  async sortByRatingAsc(): Promise<Nanny[]> {
+    return this.prismaService.nanny.findMany({ orderBy: { rating: 'asc' } })
+  }
+
+  async sortByRatingDesc(): Promise<Nanny[]> {
+    return this.prismaService.nanny.findMany({ orderBy: { rating: 'desc' } })
+  }
 }
