@@ -1,3 +1,4 @@
+import { HttpService } from '@nestjs/axios'
 import {
   BadRequestException,
   Body,
@@ -6,8 +7,11 @@ import {
   Get,
   HttpStatus,
   Post,
+  Query,
+  Req,
   Res,
   UnauthorizedException,
+  UseGuards,
   UseInterceptors
 } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
@@ -15,11 +19,14 @@ import { ApiOkResponse, ApiTags } from '@nestjs/swagger'
 
 import { UserResponse } from '@user/responses'
 import { Cookie, Public, UserAgent } from '@utils/decorators'
-import { Response } from 'express'
+import { handleTimeoutAndErrors } from '@utils/helpers'
+import { Request, Response } from 'express'
+import { map, mergeMap } from 'rxjs'
 
 import { AuthService } from './auth.service'
 import { SignUpDto, SingInDto } from './dto'
-import { Tokens } from './interfaces'
+import { GoogleGuard } from './guards/google.guard'
+import { GoogleUser, Tokens } from './interfaces'
 
 const REFRESH_TOKEN = 'refreshtoken'
 @Public()
@@ -28,7 +35,8 @@ const REFRESH_TOKEN = 'refreshtoken'
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    private readonly httpService: HttpService
   ) {}
   @UseInterceptors(ClassSerializerInterceptor)
   @Post('signup')
@@ -85,5 +93,28 @@ export class AuthController {
       path: '/'
     })
     res.status(HttpStatus.CREATED).json({ accessToken: tokens.accessToken })
+  }
+
+  @UseGuards(GoogleGuard)
+  @Get('google')
+  @ApiOkResponse()
+  googleAuth() {}
+
+  @UseGuards(GoogleGuard)
+  @Get('google/callback')
+  @ApiOkResponse()
+  googleAuthCallback(@Req() req: Request & { user?: GoogleUser }, @Res() res: Response) {
+    const token = req.user ? req.user['accessToken'] : null
+    return res.redirect(`http://localhost:5000/auth/success?token=${token}`)
+  }
+
+  @Get('success') //для проверки на фронте
+  @ApiOkResponse()
+  success(@Query('token') token: string, @UserAgent() agent: string, @Res() res: Response) {
+    return this.httpService.get(`https://www.googleapis.com/oauth2/v3/tokeninfo?access_token=${token}`).pipe(
+      mergeMap(({ data: { email } }) => this.authService.googleAuth(email, agent)),
+      map(data => this.setRefreshTokenToCookies(data, res)),
+      handleTimeoutAndErrors()
+    )
   }
 }

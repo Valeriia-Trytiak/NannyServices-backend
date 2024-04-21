@@ -10,6 +10,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule)
   app.use(cookieParser())
   app.useGlobalPipes(new ValidationPipe())
+  // app.setGlobalPrefix('api')
   // const reflector = app.get(Reflector)
   // app.useGlobalGuards(new JwtAuthGuard(reflector))
   await app.listen(PORT)

@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger, UnauthorizedException } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 
 import { Token, User } from '@prisma/client'
@@ -13,6 +13,7 @@ import { Tokens } from './interfaces'
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name)
   constructor(
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
@@ -43,7 +44,7 @@ export class AuthService {
 
   async singin(dto: SingInDto, agent: string): Promise<Tokens> {
     const user: User = await this.userService.findOne(dto.email, true)
-    if (!user || !compareSync(dto.password, user.password)) {
+    if (!user || !compareSync(dto.password, user.password || '')) {
       throw new UnauthorizedException('Login or password is incorrect')
     }
     return this.generateTokens(user, agent)
@@ -80,5 +81,19 @@ export class AuthService {
 
   deleteRefreshToken(token: string) {
     return this.prismaService.token.delete({ where: { token } })
+  }
+
+  async googleAuth(email: string, agent: string) {
+    const userExist = await this.userService.findOne(email)
+    let user
+    if (!userExist) {
+      user = await this.userService.save({ email }).catch(err => {
+        this.logger.error(err)
+        throw new BadRequestException('Unable to create user through user authorization')
+      })
+    } else {
+      user = userExist
+    }
+    return this.generateTokens(user, agent)
   }
 }

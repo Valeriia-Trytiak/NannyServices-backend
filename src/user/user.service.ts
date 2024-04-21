@@ -18,11 +18,12 @@ export class UserService {
   ) {}
 
   save(user: Partial<User>) {
-    // const hashedPassword = this.hashPassword(user.password)
-    const hashedPassword = user.password ? this.hashPassword(user.password) : undefined
-    if (!hashedPassword) {
-      throw new Error('Password is required')
-    }
+    console.log('Данные для создания нового пользователя:', user)
+    const hashedPassword = user?.password ? this.hashPassword(user.password) : null
+    // const hashedPassword = user.password ? this.hashPassword(user.password) : undefined
+    // if (!hashedPassword) {
+    //   throw new Error('Password is required')
+    // }
     return this.prismaService.user.create({
       data: { name: user.name || '', email: user.email || '', password: hashedPassword, roles: ['USER'] }
     })
